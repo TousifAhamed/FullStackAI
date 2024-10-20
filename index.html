@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+        }
+        .box {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #eee;
+        }
+        #animalImage {
+            max-width: 300px;
+            margin-top: 10px;
+        }
+        #fileInfo {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="box">
+            <h3>Select Animal</h3>
+            <input type="radio" name="animal" value="cat"> Cat
+            <input type="radio" name="animal" value="dog"> Dog
+            <input type="radio" name="animal" value="elephant"> Elephant
+            <div id="animalImage"></div>
+        </div>
+        
+        <div class="box">
+            <h3>Upload File</h3>
+            <input type="file" id="fileInput">
+            <div id="fileInfo"></div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('input[name="animal"]').forEach(radio => {
+            radio.addEventListener('change', async (e) => {
+                const animal = e.target.value;
+                const response = await fetch(`http://localhost:8000/animal/${animal}`);
+                const data = await response.json();
+                document.getElementById('animalImage').innerHTML = 
+                    `<img src="${data.image_path}" alt="${animal}">`;
+            });
+        });
+
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const response = await fetch('http://localhost:8000/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const fileDetails = await response.json();
+            document.getElementById('fileInfo').innerHTML = 
+                `Name: ${fileDetails.filename}<br>
+                 Size: ${fileDetails.size} bytes<br>
+                 Type: ${fileDetails.content_type}`;
+        });
+    </script>
+</body>
+</html>

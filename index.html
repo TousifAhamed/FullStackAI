@@ -2,186 +2,16 @@
 <html>
 <head>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
-            backdrop-filter: blur(4px);
-            padding: 30px;
-            max-width: 800px;
-            width: 100%;
-        }
-
-        .box {
-            margin: 25px 0;
-            padding: 25px;
-            border-radius: 15px;
-            background: #ffffff;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
-        }
-
-        .box:hover {
-            transform: translateY(-5px);
-        }
-
-        h3 {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            font-size: 1.5rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .animal-options {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .animal-option {
-            position: relative;
-            padding: 15px;
-            border-radius: 10px;
-            background: #f8f9fa;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .animal-option:hover {
-            background: #e9ecef;
-        }
-
-        .animal-option input[type="radio"] {
-            display: none;
-        }
-
-        .animal-option label {
-            cursor: pointer;
-            display: block;
-            font-weight: 500;
-            color: #2c3e50;
-        }
-
-        .animal-option input[type="radio"]:checked + label {
-            color: white;
-        }
-
-        .animal-option.selected {
-            background: #4361ee;
-        }
-
-        .animal-option.selected label {
-            color: white;
-        }
-
-        #animalImage {
-            margin-top: 20px;
-            text-align: center;
-        }
-
-        #animalImage img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-
-        #animalImage img:hover {
-            transform: scale(1.02);
-        }
-
-        .file-upload {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            border: 2px dashed #4361ee;
-            border-radius: 15px;
-            background: #f8f9fa;
-            transition: all 0.3s ease;
-        }
-
-        .file-upload:hover {
-            background: #e9ecef;
-        }
-
-        .file-upload input[type="file"] {
-            display: none;
-        }
-
-        .upload-button {
-            padding: 12px 24px;
-            background: #4361ee;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .upload-button:hover {
-            background: #3651d8;
-            transform: translateY(-2px);
-        }
-
-        #fileInfo {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 10px;
-            background: #f8f9fa;
-            animation: slideUp 0.3s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .info-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 8px 0;
-            color: #2c3e50;
-        }
-
-        .info-item i {
-            color: #4361ee;
-            width: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+            <p>Generating your masterpiece...</p>
+            <p class="status-message">This may take up to a minute</p>
+        </div>
+    </div>  
     <div class="container">
         <div class="box">
             <h3><i class="fas fa-paw"></i> Select Animal</h3>
@@ -212,53 +42,21 @@
             </div>
             <div id="fileInfo"></div>
         </div>
+        <div class="box">
+            <h3><i class="fas fa-magic"></i> Generate Image</h3>
+            <div class="generate-image-box">
+                <input type="text" 
+                       class="prompt-input" 
+                       placeholder="Enter your image prompt..."
+                       id="imagePrompt">
+                <button class="generate-button" id="generateBtn">
+                    <i class="fas fa-wand-magic-sparkles"></i> Generate
+                </button>
+                <div id="generatedImage"></div>
+            </div>
+        </div>
     </div>
 
-    <script>
-        document.querySelectorAll('.animal-option').forEach(option => {
-            option.addEventListener('click', function() {
-                document.querySelectorAll('.animal-option').forEach(opt => opt.classList.remove('selected'));
-                this.classList.add('selected');
-                this.querySelector('input[type="radio"]').checked = true;
-                
-                const animal = this.querySelector('input[type="radio"]').value;
-                fetch(`http://localhost:8000/animal/${animal}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const imgContainer = document.getElementById('animalImage');
-                        imgContainer.innerHTML = `<img src="${data.image_path}" alt="${animal}">`;
-                        imgContainer.style.opacity = 0;
-                        setTimeout(() => imgContainer.style.opacity = 1, 50);
-                    });
-            });
-        });
-
-        document.getElementById('fileInput').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            const formData = new FormData();
-            formData.append('file', file);
-
-            const response = await fetch('http://localhost:8000/upload', {
-                method: 'POST',
-                body: formData
-            });
-
-            const fileDetails = await response.json();
-            const fileInfo = document.getElementById('fileInfo');
-            fileInfo.innerHTML = `
-                <div class="info-item"><i class="fas fa-file"></i> Name: ${fileDetails.filename}</div>
-                <div class="info-item"><i class="fas fa-weight"></i> Size: ${formatFileSize(fileDetails.size)}</div>
-                <div class="info-item"><i class="fas fa-file-code"></i> Type: ${fileDetails.content_type}</div>
-            `;
-        });
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-    </script>
+    <script src="static/scripts.js"></script>
 </body>
 </html>
